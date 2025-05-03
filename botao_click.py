@@ -4,6 +4,7 @@ import threading
 from pynput import keyboard
 import sys
 import os
+from PIL import Image
 
 def resource_path(relative_path):
     try:
@@ -31,6 +32,26 @@ def detectar_tecla():
     with keyboard.Listener(on_press=on_press) as listener:
         listener.join()
 
+def localizar_botao_multiescala(imagem_path, escalas=[1.0, 1.25, 1.5]):
+    imagem_original = Image.open(imagem_path)
+    for escala in escalas:
+        largura = int(imagem_original.width * escala)
+        altura = int(imagem_original.height * escala)
+        imagem_redimensionada = imagem_original.resize((largura, altura))
+        imagem_temp_path = "temp_scaled_image.png"
+        imagem_redimensionada.save(imagem_temp_path)
+
+        try:
+            local = pyautogui.locateCenterOnScreen(imagem_temp_path, confidence=0.8)
+            if local:
+                return local
+        except pyautogui.ImageNotFoundException:
+            continue  # Se não encontrar, tenta com a próxima escala
+        except Exception as e:
+            print(f"Erro ao procurar imagem em escala {escala}: {e}")
+            continue
+    return None
+
 def loop_principal():
     print("Aperte F8 para Iniciar/Parar o programa")
     time.sleep(3)
@@ -39,18 +60,8 @@ def loop_principal():
     while True:
         with lock:
             if executando:
-                refresh_btn = None
-                foguete_btn = None
-
-                try:
-                    refresh_btn = pyautogui.locateCenterOnScreen(refresh_img, confidence=0.9)
-                except pyautogui.ImageNotFoundException:
-                    pass
-
-                try:
-                    foguete_btn = pyautogui.locateCenterOnScreen(foguete_img, confidence=0.9)
-                except pyautogui.ImageNotFoundException:
-                    pass
+                refresh_btn = localizar_botao_multiescala(refresh_img)
+                foguete_btn = localizar_botao_multiescala(foguete_img)
 
                 if refresh_btn:
                     pyautogui.click(refresh_btn)
