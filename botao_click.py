@@ -32,7 +32,7 @@ def detectar_tecla():
     with keyboard.Listener(on_press=on_press) as listener:
         listener.join()
 
-def localizar_botao_multiescala(imagem_path, escalas=[1.0, 1.25, 1.5]):
+def localizar_botao_multiescala(imagem_path, escalas=[1.0, 1.10]):
     imagem_original = Image.open(imagem_path)
     for escala in escalas:
         largura = int(imagem_original.width * escala)
